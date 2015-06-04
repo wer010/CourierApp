@@ -6,20 +6,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.amap.api.location.AMapLocation;
-import com.amap.api.location.AMapLocationListener;
-import com.amap.api.location.LocationManagerProxy;
-import com.amap.api.location.LocationProviderProxy;
 import com.amap.api.maps.AMap;
-import com.amap.api.maps.AMap.OnMapClickListener;
 import com.amap.api.maps.MapView;
-import com.amap.api.maps.model.BitmapDescriptorFactory;
-import com.amap.api.maps.model.Circle;
-import com.amap.api.maps.model.CircleOptions;
-import com.amap.api.maps.model.LatLng;
-import com.amap.api.maps.model.Marker;
-import com.amap.api.maps.model.MarkerOptions;
-
+import com.example.l.courierapp.R;
 
 public class OrderInfoActivity extends Activity {
 
