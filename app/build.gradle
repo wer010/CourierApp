@@ -11,6 +11,9 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
     buildTypes {
         release {
             minifyEnabled false

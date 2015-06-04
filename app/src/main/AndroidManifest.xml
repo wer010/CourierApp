@@ -20,7 +20,7 @@
         android:theme="@style/AppTheme" >
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="894765dd30d5c6467918e44198ffd40e" />
+            android:value="296cc485b27927cc6e7819f101b6d076" />
 
         <activity
             android:name=".MainActivity"
@@ -33,7 +33,8 @@
         </activity>
         <activity
             android:name=".OrderInfoActivity"
-            android:label="@string/title_activity_order_info" >
+            android:label="@string/title_activity_order_info"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 
