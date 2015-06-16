@@ -1,6 +1,7 @@
 package com.example.l.courierapp;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.location.Location;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -8,30 +9,56 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.location.LocationManagerProxy;
 import com.amap.api.location.LocationProviderProxy;
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
+import com.amap.api.maps.model.BitmapDescriptorFactory;
+import com.amap.api.maps.model.Marker;
+import com.amap.api.maps.model.MarkerOptions;
+import com.amap.api.services.geocoder.GeocodeAddress;
+import com.amap.api.services.geocoder.GeocodeQuery;
+import com.amap.api.services.geocoder.GeocodeResult;
+import com.amap.api.services.geocoder.GeocodeSearch;
+import com.amap.api.services.geocoder.RegeocodeResult;
 
 public class OrderInfoActivity extends Activity implements LocationSource,
-        AMapLocationListener {
+        AMapLocationListener,GeocodeSearch.OnGeocodeSearchListener {
 
+    private ProgressDialog progDialog = null;
     private MapView mapView;
+    private TextView textView;
     private AMap aMap;
     private LocationSource.OnLocationChangedListener mListener;
     private LocationManagerProxy mAMapLocationManager;
+    private GeocodeSearch geocoderSearch;
+    private Marker geoMarker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_info);
+        textView = (TextView)findViewById(R.id.address);
         mapView = (MapView)findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         aMap = mapView.getMap();
+        geoMarker = aMap.addMarker(new MarkerOptions().anchor(0.5f, 0.5f)
+                .icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
         setUpMap();
+        geocoderSearch = new GeocodeSearch(this);
+        geocoderSearch.setOnGeocodeSearchListener(this);
+        progDialog = new ProgressDialog(this);
+        String name = "厦门市望海路55号楼";
+        GeocodeQuery query = new GeocodeQuery(name, "0592");
+        geocoderSearch.getFromLocationNameAsyn(query);
 
     }
 
@@ -131,4 +158,42 @@ public class OrderInfoActivity extends Activity implements LocationSource,
         mAMapLocationManager = null;
     }
 
+    @Override
+    public void onRegeocodeSearched(RegeocodeResult result, int rCode) {
+
+    }
+
+    private void dismissDialog() {
+        if (progDialog != null) {
+            progDialog.dismiss();
+        }
+    }
+
+    @Override
+    public void onGeocodeSearched(GeocodeResult result, int rCode) {
+        dismissDialog();
+        String addressName;
+        if (rCode == 0) {
+            if (result != null && result.getGeocodeAddressList() != null
+                    && result.getGeocodeAddressList().size() > 0) {
+                GeocodeAddress address = result.getGeocodeAddressList().get(0);
+                /*aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        AMapUtil.convertToLatLng(address.getLatLonPoint()), 15));
+                geoMarker.setPosition(AMapUtil.convertToLatLng(address
+                        .getLatLonPoint()));*/
+                addressName = "经纬度值:" + address.getLatLonPoint() + "\n位置描述:"
+                        + address.getFormatAddress();
+                textView.setText(addressName);
+            } else {
+                Toast.makeText(getApplicationContext(), "NO RESULT",Toast.LENGTH_LONG).show();
+            }
+        } else if (rCode == 27) {
+            Toast.makeText(getApplicationContext(), "Error Network",Toast.LENGTH_LONG).show();
+        } else if (rCode == 32) {
+            Toast.makeText(getApplicationContext(), "Error Key",Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Other Error",Toast.LENGTH_LONG).show();
+        }
+
+    }
 }
