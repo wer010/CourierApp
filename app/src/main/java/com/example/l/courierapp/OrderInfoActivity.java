@@ -21,6 +21,7 @@ import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
+import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.services.geocoder.GeocodeAddress;
@@ -121,7 +122,8 @@ public class OrderInfoActivity extends Activity implements LocationSource,
             if (amapLocation != null
                     && amapLocation.getAMapException().getErrorCode() == 0) {
                 mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
-            } else {
+            }
+            else {
                 Log.e("AmapErr", "Location ERR:" + amapLocation.getAMapException().getErrorCode());
             }
         }
@@ -177,10 +179,9 @@ public class OrderInfoActivity extends Activity implements LocationSource,
             if (result != null && result.getGeocodeAddressList() != null
                     && result.getGeocodeAddressList().size() > 0) {
                 GeocodeAddress address = result.getGeocodeAddressList().get(0);
-                /*aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        AMapUtil.convertToLatLng(address.getLatLonPoint()), 15));
-                geoMarker.setPosition(AMapUtil.convertToLatLng(address
-                        .getLatLonPoint()));*/
+                aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(address.getLatLonPoint().getLatitude(),address.getLatLonPoint().getLongitude()), 15));
+                geoMarker.setPosition(new LatLng(address.getLatLonPoint().getLatitude(),address.getLatLonPoint().getLongitude()));
                 addressName = "经纬度值:" + address.getLatLonPoint() + "\n位置描述:"
                         + address.getFormatAddress();
                 textView.setText(addressName);
