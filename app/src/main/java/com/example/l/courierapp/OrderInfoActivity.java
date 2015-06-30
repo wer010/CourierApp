@@ -2,6 +2,7 @@ package com.example.l.courierapp;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.location.Location;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -35,7 +36,7 @@ public class OrderInfoActivity extends Activity implements LocationSource,
 
     private ProgressDialog progDialog = null;
     private MapView mapView;
-    private TextView textView;
+    private TextView textViewid,textViewphonenum,textViewaddress;
     private AMap aMap;
     private LocationSource.OnLocationChangedListener mListener;
     private LocationManagerProxy mAMapLocationManager;
@@ -46,7 +47,14 @@ public class OrderInfoActivity extends Activity implements LocationSource,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_info);
-        textView = (TextView)findViewById(R.id.address);
+        textViewaddress = (TextView)findViewById(R.id.address);
+        textViewid = (TextView)findViewById(R.id.orderid);
+        textViewphonenum = (TextView)findViewById(R.id.phonenum);
+
+        Intent intent = getIntent();
+        textViewid.setText("订单ID："+intent.getStringExtra("orderid"));
+        textViewphonenum.setText("电话号码："+intent.getStringExtra("phonenum"));
+
         mapView = (MapView)findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         aMap = mapView.getMap();
@@ -57,8 +65,8 @@ public class OrderInfoActivity extends Activity implements LocationSource,
         geocoderSearch = new GeocodeSearch(this);
         geocoderSearch.setOnGeocodeSearchListener(this);
         progDialog = new ProgressDialog(this);
-        String name = "厦门市望海路55号楼";
-        GeocodeQuery query = new GeocodeQuery(name, "0592");
+
+        GeocodeQuery query = new GeocodeQuery(intent.getStringExtra("address"), "0592");
         geocoderSearch.getFromLocationNameAsyn(query);
 
     }
@@ -143,7 +151,7 @@ public class OrderInfoActivity extends Activity implements LocationSource,
             // 其中如果间隔时间为-1，则定位只定一次
             // 在单次定位情况下，定位无论成功与否，都无需调用removeUpdates()方法移除请求，定位sdk内部会移除
             mAMapLocationManager.requestLocationData(
-                    LocationProviderProxy.AMapNetwork, 60 * 1000, 10, this);
+                    LocationProviderProxy.AMapNetwork, -1, 10, this);
         }
     }
 
@@ -184,7 +192,7 @@ public class OrderInfoActivity extends Activity implements LocationSource,
                 geoMarker.setPosition(new LatLng(address.getLatLonPoint().getLatitude(),address.getLatLonPoint().getLongitude()));
                 addressName = "经纬度值:" + address.getLatLonPoint() + "\n位置描述:"
                         + address.getFormatAddress();
-                textView.setText(addressName);
+                textViewaddress.setText(addressName);
             } else {
                 Toast.makeText(getApplicationContext(), "NO RESULT",Toast.LENGTH_LONG).show();
             }

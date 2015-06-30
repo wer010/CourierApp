@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 
 import android.os.Bundle;
@@ -29,7 +27,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -37,6 +35,7 @@ public class MainActivity extends Activity {
 
     private static final String[] orderid = {"1506030000", "1506030001", "1506030002", "1506030003", "1506030004","1506030005","1506030006"};
     private static final String[] orderaddress = {"二期望海路55号","观日路44号厦门信息投资","软件园二期18号"};
+    private static final String[] phonenum = {"11111111","2222222222","33333333"};
     private static Order[] orders = {};
     private String s[] = {"全部订单","正在派送订单","已派送订单"};
     @Override
@@ -137,6 +136,9 @@ public class MainActivity extends Activity {
                 @Override
                 public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,long arg3) {
                     Intent intent = new Intent(getActivity().getApplicationContext(), OrderInfoActivity.class);
+                    intent.putExtra("address",orderaddress[arg2]);
+                    intent.putExtra("orderid",orderid[arg2]);
+                    intent.putExtra("phonenum",phonenum[arg2]);
                     startActivity(intent);
                 }});
             return rootView;
