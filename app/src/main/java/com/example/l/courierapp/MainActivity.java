@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v4.widget.DrawerLayout;
 
 import android.os.Bundle;
@@ -23,6 +24,13 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
+
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -144,5 +152,55 @@ public class MainActivity extends ActionBarActivity {
                 }});
             return rootView;
         }
+    }
+
+    private class HttpGetTask extends AsyncTask<Void, Void, String> {
+
+        private static final String SOAP_ACTION1 = "http://tsinhe.com/selectAllCargoInfor";
+
+        private static final String NAMESPACE = "http://tsinhe.com";
+
+        private static final String METHOD_NAME1 = "selectAllCargoInfor";
+
+        private static final String URL = "http://tsinhe.com/in/service1.asmx?WSDL";
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String data = "";
+
+            SoapObject soapObject = new SoapObject(NAMESPACE, METHOD_NAME1);
+            SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+            envelope.setOutputSoapObject(soapObject);
+            envelope.dotNet = true;
+            try {
+                HttpTransportSE androidHttpTransport = new HttpTransportSE(URL);
+
+                //this is the actual part that will call the webservice
+                androidHttpTransport.call(SOAP_ACTION1, envelope);
+
+                // Get the SoapResult from the envelope body.
+                SoapObject result = (SoapObject)envelope.getResponse();
+                int n = result.getPropertyCount();
+                if(result != null)
+                {
+                    //Get the first property and change the label text
+                    data =result.getProperty(0).toString();
+                }
+                else
+                {
+                    data = "No Response";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //mTextView.setText(result);
+        }
+
     }
 }
