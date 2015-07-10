@@ -1,6 +1,5 @@
 package com.example.l.courierapp;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -16,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.widget.DrawerLayout;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
@@ -45,7 +45,7 @@ public class MainActivity extends ActionBarActivity {
     private static final String[] orderid = {"1506030000", "1506030001", "1506030002", "1506030003", "1506030004","1506030005","1506030006"};
     private static final String[] orderaddress = {"二期望海路55号","观日路44号厦门信息投资","软件园二期18号"};
     private static final String[] phonenum = {"11111111","2222222222","33333333"};
-    private static Order[] orders = {};
+    public static final ArrayList<Order> orderArrayList = new ArrayList<Order>();
     private String s[] = {"全部订单","正在派送订单","已派送订单"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-
+        new HttpGetTask().execute();
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,s));
 
 
@@ -63,16 +63,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView arg0, View arg1, int arg2,long arg3) {
                 //提示框显示的内容
-                Fragment fragment = new PlanetFragment();
-                Bundle args = new Bundle();
-                args.putInt(PlanetFragment.ARG_PLANET_NUMBER, arg2);
-                fragment.setArguments(args);
 
-                // Insert the fragment by replacing any existing fragment
-                FragmentManager fragmentManager = getFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.content_frame, fragment)
-                        .commit();
 
                 // Highlight the selected item, update the title, and close the drawer
                 mDrawerList.setItemChecked(arg2, true);
@@ -101,20 +92,22 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public static class PlanetFragment extends Fragment {
+    public static class orderFragment extends Fragment {
         public static final String ARG_PLANET_NUMBER = "planet_number";
         private ListView mlistview;
-        public PlanetFragment() {
+        public orderFragment() {
             // Empty constructor required for fragment subclasses
         }
 
         public static Fragment newInstance(int position) {
-            Fragment fragment = new PlanetFragment();
+            Fragment fragment = new orderFragment();
             Bundle args = new Bundle();
-            args.putInt(PlanetFragment.ARG_PLANET_NUMBER, position);
+            args.putInt(orderFragment.ARG_PLANET_NUMBER, position);
             fragment.setArguments(args);
             return fragment;
         }
+
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -124,10 +117,11 @@ public class MainActivity extends ActionBarActivity {
             mlistview = (ListView)rootView.findViewById(R.id.listView);
             ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>>();
 
-            for(int i=0; i<3; i++){
+
+            for(int i=0; i<orderArrayList.size(); i++){
                 HashMap<String, Object> map = new HashMap<String, Object>();
-                map.put("ItemTitle", "订单号："+orderid[i]);
-                map.put("ItemText", "订单地址："+orderaddress[i]);
+                map.put("ItemTitle", "订单号："+orderArrayList.get(i).id);
+                map.put("ItemText", "订单地址："+orderArrayList.get(i).address);
                 map.put("ItemTime","送达时间:11:30");
                 listItem.add(map);
             }
@@ -145,16 +139,17 @@ public class MainActivity extends ActionBarActivity {
                 @Override
                 public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,long arg3) {
                     Intent intent = new Intent(getActivity().getApplicationContext(), OrderInfoActivity.class);
-                    intent.putExtra("address",orderaddress[arg2]);
-                    intent.putExtra("orderid",orderid[arg2]);
-                    intent.putExtra("phonenum",phonenum[arg2]);
+                    intent.putExtra("address",orderArrayList.get(arg2).address);
+                    intent.putExtra("orderid",orderArrayList.get(arg2).id);
+                    intent.putExtra("phonenum",orderArrayList.get(arg2).phonenum);
+                    intent.putExtra("price",orderArrayList.get(arg2).price);
                     startActivity(intent);
                 }});
             return rootView;
         }
     }
 
-    private class HttpGetTask extends AsyncTask<Void, Void, String> {
+    private class HttpGetTask extends AsyncTask<Void, Void, SoapObject> {
 
         private static final String SOAP_ACTION1 = "http://tsinhe.com/selectAllCargoInfor";
 
@@ -165,9 +160,12 @@ public class MainActivity extends ActionBarActivity {
         private static final String URL = "http://tsinhe.com/in/service1.asmx?WSDL";
 
         @Override
-        protected String doInBackground(Void... params) {
-            String data = "";
+        protected void onPreExecute() {
+        }
 
+        @Override
+        protected SoapObject doInBackground(Void... params) {
+            SoapObject orders = null;
             SoapObject soapObject = new SoapObject(NAMESPACE, METHOD_NAME1);
             SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
             envelope.setOutputSoapObject(soapObject);
@@ -179,27 +177,40 @@ public class MainActivity extends ActionBarActivity {
                 androidHttpTransport.call(SOAP_ACTION1, envelope);
 
                 // Get the SoapResult from the envelope body.
-                SoapObject result = (SoapObject)envelope.getResponse();
-                int n = result.getPropertyCount();
-                if(result != null)
-                {
-                    //Get the first property and change the label text
-                    data =result.getProperty(0).toString();
-                }
-                else
-                {
-                    data = "No Response";
-                }
-            } catch (Exception e) {
+                orders = (SoapObject)envelope.getResponse();
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
-
-            return data;
+            return orders;
         }
 
         @Override
-        protected void onPostExecute(String result) {
-            //mTextView.setText(result);
+        protected void onPostExecute(SoapObject soapObject) {
+
+            orderArrayList.clear();
+            for(int i=0;i<soapObject.getPropertyCount();i++)
+            {
+                Order c = new Order();
+                SoapObject order = (SoapObject)soapObject.getProperty(i);
+                c.id = order.getProperty("orderid").toString();
+                c.phonenum = order.getProperty("phonenum").toString();
+                c.address = order.getProperty("address").toString();
+                c.price = order.getProperty("price").toString();
+                orderArrayList.add(c);
+            }
+
+            Fragment fragment = new orderFragment();
+            Bundle args = new Bundle();
+            //args.putInt(orderFragment.ARG_PLANET_NUMBER, arg2);
+            fragment.setArguments(args);
+
+            // Insert the fragment by replacing any existing fragment
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.content_frame, fragment)
+                    .commit();
+
         }
 
     }

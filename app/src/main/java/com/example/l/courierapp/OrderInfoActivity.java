@@ -36,7 +36,7 @@ public class OrderInfoActivity extends Activity implements LocationSource,
 
     private ProgressDialog progDialog = null;
     private MapView mapView;
-    private TextView textViewid,textViewphonenum,textViewaddress;
+    private TextView textViewid,textViewphonenum,textViewaddress,textViewprice;
     private AMap aMap;
     private LocationSource.OnLocationChangedListener mListener;
     private LocationManagerProxy mAMapLocationManager;
@@ -50,11 +50,14 @@ public class OrderInfoActivity extends Activity implements LocationSource,
         textViewaddress = (TextView)findViewById(R.id.address);
         textViewid = (TextView)findViewById(R.id.orderid);
         textViewphonenum = (TextView)findViewById(R.id.phonenum);
+        textViewprice = (TextView)findViewById(R.id.price);
 
         Intent intent = getIntent();
+
         textViewid.setText("订单ID："+intent.getStringExtra("orderid"));
         textViewphonenum.setText("电话号码："+intent.getStringExtra("phonenum"));
-
+        textViewprice.setText("订单价格："+intent.getStringExtra("price"));
+        textViewaddress.setText("订单地址："+intent.getStringExtra("address"));
         mapView = (MapView)findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         aMap = mapView.getMap();
@@ -182,7 +185,6 @@ public class OrderInfoActivity extends Activity implements LocationSource,
     @Override
     public void onGeocodeSearched(GeocodeResult result, int rCode) {
         dismissDialog();
-        String addressName;
         if (rCode == 0) {
             if (result != null && result.getGeocodeAddressList() != null
                     && result.getGeocodeAddressList().size() > 0) {
@@ -190,9 +192,7 @@ public class OrderInfoActivity extends Activity implements LocationSource,
                 aMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         new LatLng(address.getLatLonPoint().getLatitude(),address.getLatLonPoint().getLongitude()), 15));
                 geoMarker.setPosition(new LatLng(address.getLatLonPoint().getLatitude(),address.getLatLonPoint().getLongitude()));
-                addressName = "经纬度值:" + address.getLatLonPoint() + "\n位置描述:"
-                        + address.getFormatAddress();
-                textViewaddress.setText(addressName);
+
             } else {
                 Toast.makeText(getApplicationContext(), "NO RESULT",Toast.LENGTH_LONG).show();
             }
